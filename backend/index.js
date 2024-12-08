@@ -47,3 +47,40 @@ app.post('/posts', async (req, res) => {
 app.listen(PORT, () => {
     console.log(`Servidor escuchando en http://localhost:${PORT}`);
 });
+
+
+// Ruta PUT para registrar un like en un post
+app.put('/posts/like/:id', async (req, res) => {
+    const { id } = req.params;
+    try {
+        const query = 'UPDATE posts SET likes = likes + 1 WHERE id = $1 RETURNING *';
+        const result = await pool.query(query, [id]);
+
+        if (result.rowCount === 0) {
+            return res.status(404).json({ error: 'Post no encontrado' });
+        }
+
+        res.status(200).json({ message: 'Like registrado', post: result.rows[0] });
+    } catch (error) {
+        console.error('Error al registrar el like:', error);
+        res.status(500).json({ error: 'Error al registrar el like' });
+    }
+});
+
+// Ruta DELETE para eliminar un post
+app.delete('/posts/:id', async (req, res) => {
+    const { id } = req.params;
+    try {
+        const query = 'DELETE FROM posts WHERE id = $1 RETURNING *';
+        const result = await pool.query(query, [id]);
+
+        if (result.rowCount === 0) {
+            return res.status(404).json({ error: 'Post no encontrado' });
+        }
+
+        res.status(200).json({ message: 'Post eliminado', post: result.rows[0] });
+    } catch (error) {
+        console.error('Error al eliminar el post:', error);
+        res.status(500).json({ error: 'Error al eliminar el post' });
+    }
+});
